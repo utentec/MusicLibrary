@@ -12,5 +12,5 @@ Applicazione desktop per la gestione di una libreria musicale personale con ripr
 - Maven
 
 ## Link di progetto
-- 📋 **Trello Board:** https://trello.com/invite/b/6a2ff6b7a12185a957b4cd80/ATTIadec8b6ac10c98bebb1225d00c61f6f5ACEDC717/music-library
-- 📊 **Product Backlog:** https://unisalerno-my.sharepoint.com/:x:/g/personal/v_schiro_studenti_unisa_it/IQDIYXlGenepQrjHqZUlgGPdAQ7iz2ZGRn46Oq0JddvXTkg?e=gUjhOI
+- **Trello Board:** https://trello.com/invite/b/6a2ff6b7a12185a957b4cd80/ATTIadec8b6ac10c98bebb1225d00c61f6f5ACEDC717/music-library
+- **Product Backlog:** https://unisalerno-my.sharepoint.com/:x:/g/personal/v_schiro_studenti_unisa_it/IQDIYXlGenepQrjHqZUlgGPdAQ7iz2ZGRn46Oq0JddvXTkg?e=gUjhOI
