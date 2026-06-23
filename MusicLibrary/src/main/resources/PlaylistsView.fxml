@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Pannello incluso dentro MainView.fxml: occupa l'area contenuto della finestra principale -->
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.musiclibrary.view.PlaylistsController">
+
+    <!-- Barra superiore: titolo + "+ Nuova Playlist" (l'add contestuale dei playlist) -->
+    <top>
+        <HBox spacing="10" alignment="CENTER_LEFT"
+              style="-fx-padding: 8 10 8 10; -fx-background-color: white;">
+            <Label text="Le tue Playlist"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="+ Nuova Playlist" onAction="#onAddPlaylist"
+                    prefHeight="30"
+                    style="-fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+
+    <!-- Master-detail: a sinistra l'elenco, a destra i brani della playlist scelta -->
+    <center>
+        <SplitPane dividerPositions="0.4">
+            <items>
+                <VBox spacing="6" style="-fx-padding: 8;">
+                    <Label text="Playlist" style="-fx-font-weight: bold;"/>
+                    <ListView fx:id="playlistListView" VBox.vgrow="ALWAYS"/>
+                </VBox>
+                <VBox spacing="6" style="-fx-padding: 8;">
+                    <Label fx:id="detailHeader" text="Nessuna playlist selezionata"
+                           style="-fx-font-weight: bold;"/>
+                    <ListView fx:id="trackListView" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </items>
+        </SplitPane>
+    </center>
+
+</BorderPane>

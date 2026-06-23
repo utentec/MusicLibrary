@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.musiclibrary.view.MainViewController"
+      prefWidth="1000" prefHeight="650">
+
+    <!-- Header -->
+    <HBox alignment="CENTER" prefHeight="45"
+          style="-fx-background-color: #e8e8e8;">
+        <Label text="Music Library"
+               style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <!-- Barra di navigazione (resta fissa: cambia solo il contenuto sotto) -->
+    <HBox spacing="4" alignment="CENTER_LEFT" prefHeight="42"
+          style="-fx-background-color: #f0f0f0;">
+        <padding><Insets top="6" bottom="6" left="10" right="10"/></padding>
+        <Button fx:id="btnSongList" text="Song List" prefWidth="120" prefHeight="30"
+                onAction="#onNavSongList"
+                style="-fx-background-color: #d0d0d0;"/>
+        <Button fx:id="btnPlaylists" text="Playlists" prefWidth="120" prefHeight="30"
+                onAction="#onNavPlaylists"/>
+        <Button text="Player" prefWidth="120" prefHeight="30"
+                onAction="#onNavPlayer"/>
+        <Button text="Home" prefWidth="120" prefHeight="30"
+                onAction="#onNavHome"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnAddTrack" text="+ Add Song"
+                prefWidth="130" prefHeight="30"
+                onAction="#onAddTrack"
+                style="-fx-font-weight: bold;"/>
+    </HBox>
+
+    <!-- Area contenuto: qui si alternano Song List e Playlists nella STESSA finestra -->
+    <StackPane fx:id="contentArea" VBox.vgrow="ALWAYS">
+
+        <!-- ===== Pannello SONG LIST (solo tabella) ===== -->
+        <VBox fx:id="songListPane">
+            <TableView fx:id="trackTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colTitle"    text="Title"    prefWidth="300"/>
+                    <TableColumn fx:id="colAuthor"   text="Artist"   prefWidth="200"/>
+                    <TableColumn fx:id="colGenre"    text="Genre"    prefWidth="120"/>
+                    <TableColumn fx:id="colYear"     text="Year"     prefWidth="80"/>
+                    <TableColumn fx:id="colDuration" text="Duration" prefWidth="100"/>
+                    <TableColumn fx:id="colActions"  text="Actions"  prefWidth="100"/>
+                </columns>
+                <placeholder>
+                    <Label text="Nessun brano presente. Aggiungi il tuo primo brano."
+                           style="-fx-text-fill: #999999;"/>
+                </placeholder>
+            </TableView>
+        </VBox>
+
+        <!-- ===== Pannello PLAYLISTS (incluso; nascosto all'avvio dal controller) ===== -->
+        <fx:include source="/PlaylistsView.fxml" fx:id="playlistsPane"/>
+
+    </StackPane>
+</VBox>
