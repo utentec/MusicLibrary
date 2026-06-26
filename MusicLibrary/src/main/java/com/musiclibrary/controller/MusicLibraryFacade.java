@@ -85,7 +85,10 @@ public class MusicLibraryFacade {
         Track track = trackRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Brano non trovato: " + id));
         for (Playlist playlist : playlistRepository.findAll()) {
-            playlist.removeTrack(track);
+            if (playlist.getTracks().contains(track)) {
+                playlist.removeTrack(track);
+                playlistRepository.update(playlist); // persiste la playlist modificata
+            }
         }
         trackRepository.removeTrack(id);
     }
@@ -117,6 +120,7 @@ public class MusicLibraryFacade {
     public void addTrackToPlaylist(Playlist playlist, Track track) {
         Command cmd = new AddTrackCommand(playlist, track);
         undoManager.executeCommand(cmd);
+        playlistRepository.update(playlist); // persiste l'aggiunta (no-op in memoria)
     }
 
     /** Annulla l'ultima operazione annullabile (es. un'aggiunta a playlist). */

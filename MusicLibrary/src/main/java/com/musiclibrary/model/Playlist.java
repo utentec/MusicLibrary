@@ -88,17 +88,27 @@ public class Playlist {
 
     // ── Getter ────────────────────────────────────────────
     /** @return l'identificativo univoco della playlist */
-    public String getId()          { return id; }
+    public String getId() {
+        return id;
+    }
     /** @return il nome della playlist */
-    public String getName()        { return name; }
+    public String getName() {
+        return name;
+    }
     /** @return una copia della lista dei brani (modificarla non altera la playlist) */
-    public List<Track> getTracks() { return new ArrayList<>(tracks); }
+    public List<Track> getTracks() {
+        return new ArrayList<>(tracks);
+    }
     /** @return il numero di riproduzioni */
-    public int getPlayCount()      { return playCount; }
+    public int getPlayCount()      {
+        return playCount;
+    }
 
     // ── Setter ────────────────────────────────────────────
     /** @param name il nuovo nome della playlist */
-    public void setName(String name) { this.name = name; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
     /** @return una rappresentazione testuale del tipo "nome (N brani)" */
     @Override

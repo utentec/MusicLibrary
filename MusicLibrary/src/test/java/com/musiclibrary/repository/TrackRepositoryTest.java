@@ -18,7 +18,7 @@ class TrackRepositoryTest {
         repo = new InMemoryTrackRepository();
     }
 
-    // AC Scenario 1 — Creazione valida
+    // Creazione valida
     @Test
     void addTrack_validTrack_isPresentInFindAll() {
         Track track = new Track("Bohemian Rhapsody", "Queen", 1975, 355, "Rock");

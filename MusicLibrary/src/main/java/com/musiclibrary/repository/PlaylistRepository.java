@@ -24,6 +24,14 @@ public interface PlaylistRepository {
     void removePlaylist(String id);
 
     /**
+     * Persiste lo stato corrente di una playlist già esistente (ad esempio dopo
+     * l'aggiunta o la rimozione di un brano dal suo contenuto). Simmetrico a
+     * {@link TrackRepository#updateTrack}.
+     * @param playlist la playlist da aggiornare
+     */
+    void update(Playlist playlist);
+
+    /**
      * Cerca una playlist per identificativo.
      * @param id identificativo della playlist
      * @return la playlist, se presente

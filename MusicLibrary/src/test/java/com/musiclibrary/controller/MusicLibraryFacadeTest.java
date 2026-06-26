@@ -9,7 +9,11 @@ import com.musiclibrary.repository.TrackRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MusicLibraryFacadeTest {
 
@@ -24,7 +28,7 @@ class MusicLibraryFacadeTest {
 
     // ── US-H1.1 — Creazione brano (partizionamento in classi di equivalenza) ──
 
-    // AC Scenario 1 — Creazione valida
+    // Creazione valida
     @Test
     void createTrack_validData_trackIsSaved() {
         Track track = facade.createTrack("Bohemian Rhapsody", "Queen", 1975, 355, "Rock");
@@ -34,7 +38,7 @@ class MusicLibraryFacadeTest {
         assertEquals(1, facade.getAllTracks().size());
     }
 
-    // AC Scenario 2 — Titolo vuoto
+    // Titolo vuoto
     @Test
     void createTrack_emptyTitle_throwsException() {
         assertThrows(IllegalArgumentException.class, () ->
@@ -42,7 +46,7 @@ class MusicLibraryFacadeTest {
         );
     }
 
-    // AC Scenario 2 — Autore vuoto
+    // Autore vuoto
     @Test
     void createTrack_emptyAuthor_throwsException() {
         assertThrows(IllegalArgumentException.class, () ->
@@ -50,7 +54,7 @@ class MusicLibraryFacadeTest {
         );
     }
 
-    // AC Scenario 3 — Anno non valido (rappresentante della classe "fuori range")
+    // Anno non valido (rappresentante della classe "fuori range")
     @Test
     void createTrack_invalidYear_throwsException() {
         assertThrows(IllegalArgumentException.class, () ->
@@ -58,7 +62,7 @@ class MusicLibraryFacadeTest {
         );
     }
 
-    // AC Scenario 3 — Durata non valida (rappresentante della classe "<= 0")
+    // Durata non valida (rappresentante della classe "<= 0")
     @Test
     void createTrack_zeroDuration_throwsException() {
         assertThrows(IllegalArgumentException.class, () ->
@@ -66,11 +70,6 @@ class MusicLibraryFacadeTest {
         );
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  BOUNDARY VALUE ANALYSIS  (Lezione 12 — analisi dei valori limite)
-    //  Per ogni intervallo si testano i confini: al limite valido e appena
-    //  oltre (non valido), su entrambi i lati. Le frontiere sono error-prone.
-    // ══════════════════════════════════════════════════════════════════════
 
     // ── Anno: intervallo valido [1900, 2026] ──────────────────────────────
 
@@ -120,11 +119,6 @@ class MusicLibraryFacadeTest {
     }
 
     // ── Lunghezza titolo: massimo 200 caratteri (confine 200 / 201) ────────
-    //  NOTA: il codice attuale (title.length() > 200) considera 200 VALIDO e
-    //  201 NON valido, coerente col task "titolo >200 char". L'AC Scenario 3
-    //  cita però "titolo di 200 caratteri" tra i casi non validi: AMBIGUITÀ da
-    //  chiarire col PO. Se 200 dovesse diventare NON valido, cambiare sia la
-    //  validazione (>= 200) sia il test createTrack_titleAtMaxLength_isValid.
 
     @Test
     void createTrack_titleAtMaxLength_isValid() {           // 200 char → valido (confine)
@@ -183,7 +177,7 @@ class MusicLibraryFacadeTest {
     // ── US-H1.2 — Modifica brano ──────────────────────────────────────────
 
     @Test
-    void updateTrack_validData_trackIsUpdated() {
+    void updateTrack_validData_trackIsUpdated() { // Cambio titolo
         Track t = facade.createTrack("Titolo Vecchio", "Artista", 2000, 200, "Pop");
         facade.updateTrack(t.getId(), "Titolo Nuovo", "Artista", 2000, 200, "Pop");
 
@@ -192,7 +186,7 @@ class MusicLibraryFacadeTest {
     }
 
     @Test
-    void updateTrack_invalidYear_throwsException() {
+    void updateTrack_invalidYear_throwsException() { // Cambio con data non valida
         Track t = facade.createTrack("Titolo", "Artista", 2000, 200, "Pop");
         assertThrows(IllegalArgumentException.class, () ->
                 facade.updateTrack(t.getId(), "Titolo", "Artista", 1800, 200, "Pop")
@@ -200,7 +194,7 @@ class MusicLibraryFacadeTest {
     }
 
     @Test
-    void updateTrack_zeroDuration_throwsException() {
+    void updateTrack_zeroDuration_throwsException() { // Cambio con durata non valida
         Track t = facade.createTrack("Titolo", "Artista", 2000, 200, "Pop");
         assertThrows(IllegalArgumentException.class, () ->
                 facade.updateTrack(t.getId(), "Titolo", "Artista", 2000, 0, "Pop")
@@ -256,7 +250,7 @@ class MusicLibraryFacadeTest {
         assertEquals("Bohemian Rhapsody", p.getTracks().get(0).getTitle());
     }
 
-    // AC Scenario 2 — stesso brano in due playlist diverse, senza conflitti (task H1.6.6)
+    // Stesso brano in due playlist diverse, senza conflitti
     @Test
     void addTrackToPlaylist_sameTrackInTwoPlaylists_appearsInBoth() {
         Track t = facade.createTrack("Bohemian Rhapsody", "Queen", 1975, 355, "Rock");
@@ -272,7 +266,7 @@ class MusicLibraryFacadeTest {
         assertTrue(preferiti.getTracks().contains(t));
     }
 
-    // AC Scenario 3 — stesso brano due volte nella stessa playlist, in fondo
+    // Stesso brano due volte nella stessa playlist, in fondo
     @Test
     void addTrackToPlaylist_sameTrackTwice_appearsTwiceInOrder() {
         Track t = facade.createTrack("Levitating", "Dua Lipa", 2020, 203, "Pop");

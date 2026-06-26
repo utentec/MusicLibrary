@@ -45,11 +45,15 @@ public class UndoManager {
      * Indica se esiste almeno un comando annullabile.
      * @return {@code true} se la pila di undo non è vuota
      */
-    public boolean canUndo() { return !undoStack.isEmpty(); }
+    public boolean canUndo() {
+        return !undoStack.isEmpty();
+    }
 
     /**
      * Indica se esiste almeno un comando ripristinabile.
      * @return {@code true} se la pila di redo non è vuota
      */
-    public boolean canRedo() { return !redoStack.isEmpty(); }
+    public boolean canRedo() {
+        return !redoStack.isEmpty();
+    }
 }

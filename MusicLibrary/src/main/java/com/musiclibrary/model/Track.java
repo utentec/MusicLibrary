@@ -72,37 +72,67 @@ public class Track {
 
     // ── Getter ────────────────────────────────────────────
     /** @return l'identificativo univoco del brano */
-    public String getId()       { return id; }
+    public String getId() {
+        return id;
+    }
     /** @return il titolo */
-    public String getTitle()    { return title; }
+    public String getTitle() {
+        return title;
+    }
     /** @return l'autore/artista */
-    public String getAuthor()   { return author; }
+    public String getAuthor() {
+        return author;
+    }
     /** @return l'anno di pubblicazione */
-    public int getYear()        { return year; }
+    public int getYear() {
+        return year;
+    }
     /** @return la durata in secondi */
-    public int getLength()      { return length; }
+    public int getLength() {
+        return length;
+    }
     /** @return il genere musicale */
-    public String getGenre()    { return genre; }
+    public String getGenre() {
+        return genre;
+    }
     /** @return l'insieme dei tag associati al brano */
-    public Set<Tag> getTags()   { return tags; }
+    public Set<Tag> getTags() {
+        return tags;
+    }
     /** @return il numero di riproduzioni */
-    public int getPlayCount()   { return playCount; }
+    public int getPlayCount() {
+        return playCount;
+    }
     /** @return il percorso del file audio (stringa vuota se non impostato) */
-    public String getFilePath() { return filePath; }
+    public String getFilePath() {
+        return filePath;
+    }
 
     // ── Setter ────────────────────────────────────────────
     /** @param title il nuovo titolo */
-    public void setTitle(String title)    { this.title = title; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
     /** @param author il nuovo autore/artista */
-    public void setAuthor(String author)  { this.author = author; }
+    public void setAuthor(String author)  {
+        this.author = author;
+    }
     /** @param year il nuovo anno di pubblicazione */
-    public void setYear(int year)         { this.year = year; }
+    public void setYear(int year) {
+        this.year = year;
+    }
     /** @param length la nuova durata in secondi */
-    public void setLength(int length)     { this.length = length; }
+    public void setLength(int length) {
+        this.length = length;
+    }
     /** @param genre il nuovo genere musicale */
-    public void setGenre(String genre)    { this.genre = genre; }
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
     /** @param path il percorso del file audio */
-    public void setFilePath(String path)  { this.filePath = path; }
+    public void setFilePath(String path) {
+        this.filePath = path;
+    }
 
     /** @return una rappresentazione testuale del tipo "Titolo — Autore (anno)" */
     @Override
