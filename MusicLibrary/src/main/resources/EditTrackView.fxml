@@ -45,6 +45,16 @@
                style="-fx-font-weight: bold;"/>
         <ComboBox fx:id="comboGenre" prefWidth="260"
                   GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+        <!-- File audio -->
+        <Label text="File audio" GridPane.rowIndex="5" GridPane.columnIndex="0"
+               style="-fx-font-weight: bold;"/>
+        <HBox spacing="8" alignment="CENTER_LEFT"
+              GridPane.rowIndex="5" GridPane.columnIndex="1">
+            <Button text="Scegli…" onAction="#onChooseFile"/>
+            <Label fx:id="labelFile" text="nessun file"
+                   style="-fx-text-fill: #666666; -fx-font-size: 11px;"/>
+        </HBox>
     </GridPane>
 
     <Label fx:id="labelError"

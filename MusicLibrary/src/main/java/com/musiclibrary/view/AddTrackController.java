@@ -6,11 +6,15 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
+
 /**
- * Controller del dialog "Nuovo Brano": raccoglie i dati dal form, delega la
- * creazione (con validazione) alla Facade e mostra eventuali errori.
+ * Controller del dialog "Nuovo Brano": raccoglie i dati dal form (incluso il
+ * file audio), delega la creazione (con validazione) alla Facade e mostra
+ * eventuali errori.
  */
 public class AddTrackController {
 
@@ -19,10 +23,12 @@ public class AddTrackController {
     @FXML private TextField fieldYear;
     @FXML private TextField fieldLength;
     @FXML private ComboBox<String> comboGenre;
+    @FXML private Label labelFile;
     @FXML private Label labelError;
 
     private MusicLibraryFacade facade;
     private MainViewController mainController;
+    private String selectedFilePath = "";
 
     /**
      * Inietta la Facade del dominio.
@@ -48,6 +54,19 @@ public class AddTrackController {
                 "Classica", "Elettronica", "R&B", "Altro"
         ));
         comboGenre.getSelectionModel().select("Pop");
+    }
+
+    @FXML
+    private void onChooseFile() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Scegli un file audio");
+        chooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("File audio (MP3, WAV)", "*.mp3", "*.wav"));
+        File file = chooser.showOpenDialog(fieldTitle.getScene().getWindow());
+        if (file != null) {
+            selectedFilePath = file.getAbsolutePath();
+            labelFile.setText(file.getName());
+        }
     }
 
     @FXML
@@ -81,7 +100,7 @@ public class AddTrackController {
 
         // Validazione di dominio (range anno, durata > 0, lunghezza titolo) + creazione
         try {
-            facade.createTrack(title, author, year, length, genre);
+            facade.createTrack(title, author, year, length, genre, selectedFilePath);
             if (mainController != null) mainController.refreshTable();
             closeDialog();
         } catch (IllegalArgumentException e) {

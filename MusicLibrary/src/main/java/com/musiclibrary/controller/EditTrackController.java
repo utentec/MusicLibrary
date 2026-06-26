@@ -1,7 +1,8 @@
-package com.musiclibrary.view;
+package com.musiclibrary.controller;
 
 import com.musiclibrary.controller.MusicLibraryFacade;
 import com.musiclibrary.model.Track;
+import com.musiclibrary.view.MainViewController;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -100,7 +101,7 @@ public class EditTrackController {
         String lengthText = fieldLength.getText().trim();
         String genre      = comboGenre.getValue();
 
-        // Controlli "campo mancante" in ordine, prima di parsare i numeri
+        // Controlli "campo mancante" NELL'ORDINE voluto, prima di parsare i numeri
         if (title.isEmpty())      { labelError.setText("Il titolo non può essere vuoto."); return; }
         if (author.isEmpty())     { labelError.setText("L'autore non può essere vuoto."); return; }
         if (yearText.isEmpty())   { labelError.setText("L'anno non può essere vuoto."); return; }

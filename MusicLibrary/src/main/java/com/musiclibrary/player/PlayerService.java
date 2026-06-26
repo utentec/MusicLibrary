@@ -1,0 +1,69 @@
+package com.musiclibrary.player;
+
+import com.musiclibrary.model.Track;
+
+/**
+ * Servizio di riproduzione: orchestra lo stato del player ({@link PlaybackState})
+ * e delega la riproduzione audio vera e propria a un {@link AudioPlayer}. La
+ * logica di stato è qui ed è testabile in isolamento, mentre l'audio reale è
+ * incapsulato dietro l'interfaccia AudioPlayer.
+ */
+public class PlayerService {
+
+    private final AudioPlayer audioPlayer;
+    private final PlaybackState state;
+    private Runnable onPlaybackChanged;
+
+    /**
+     * Crea il servizio iniettando il player audio da usare (reale o doppio di test).
+     * @param audioPlayer il player audio su cui delegare la riproduzione
+     */
+    public PlayerService(AudioPlayer audioPlayer) {
+        this.audioPlayer = audioPlayer;
+        this.state = new PlaybackState();
+        this.onPlaybackChanged = () -> { };
+        this.audioPlayer.setOnEndOfMedia(this::onTrackEnded);
+    }
+
+    /**
+     * Avvia la riproduzione di un singolo brano. Se il brano non ha un file
+     * audio associato, non avvia nulla e lo stato resta invariato.
+     * @param track il brano da riprodurre
+     */
+    public void play(Track track) {
+        if (track.getFilePath() == null || track.getFilePath().isEmpty()) {
+            return;
+        }
+        state.startTrack(track);
+        audioPlayer.play(track.getFilePath());
+        onPlaybackChanged.run();
+    }
+
+    /**
+     * Ferma la riproduzione corrente e riporta lo stato a quello iniziale.
+     */
+    public void stop() {
+        state.stop();
+        audioPlayer.stop();
+        onPlaybackChanged.run();
+    }
+
+    /**
+     * Registra un'azione eseguita a ogni cambio di stato della riproduzione
+     * (avvio, stop, fine del brano): usata dalla UI per aggiornarsi.
+     * @param callback l'azione di aggiornamento; {@code null} per nessuna azione
+     */
+    public void setOnPlaybackChanged(Runnable callback) {
+        this.onPlaybackChanged = (callback != null) ? callback : () -> { };
+    }
+
+    private void onTrackEnded() {
+        state.stop();
+        onPlaybackChanged.run();
+    }
+
+    /** @return lo stato corrente della riproduzione (in sola lettura per la UI) */
+    public PlaybackState getPlaybackState() {
+        return state;
+    }
+}

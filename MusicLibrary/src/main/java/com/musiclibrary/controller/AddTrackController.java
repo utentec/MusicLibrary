@@ -1,7 +1,7 @@
-package com.musiclibrary.view;
+package com.musiclibrary.controller;
 
 import com.musiclibrary.controller.MusicLibraryFacade;
-import com.musiclibrary.model.Track;
+import com.musiclibrary.view.MainViewController;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -13,11 +13,11 @@ import javafx.stage.Stage;
 import java.io.File;
 
 /**
- * Controller del dialog "Modifica Brano": pre-compila il form con i dati del
- * brano selezionato (incluso il file audio) e delega l'aggiornamento (con
- * validazione) alla Facade.
+ * Controller del dialog "Nuovo Brano": raccoglie i dati dal form (incluso il
+ * file audio), delega la creazione (con validazione) alla Facade e mostra
+ * eventuali errori.
  */
-public class EditTrackController {
+public class AddTrackController {
 
     @FXML private TextField fieldTitle;
     @FXML private TextField fieldAuthor;
@@ -29,7 +29,6 @@ public class EditTrackController {
 
     private MusicLibraryFacade facade;
     private MainViewController mainController;
-    private Track track;
     private String selectedFilePath = "";
 
     /**
@@ -48,33 +47,14 @@ public class EditTrackController {
         this.mainController = mainController;
     }
 
-    /**
-     * Imposta il brano da modificare e pre-compila i campi del form con i suoi dati.
-     * @param track il brano da modificare
-     */
-    public void setTrack(Track track) {
-        this.track = track;
-        fieldTitle.setText(track.getTitle());
-        fieldAuthor.setText(track.getAuthor());
-        fieldYear.setText(String.valueOf(track.getYear()));
-        fieldLength.setText(String.valueOf(track.getLength()));
-        comboGenre.setValue(track.getGenre());
-
-        selectedFilePath = track.getFilePath();
-        if (selectedFilePath != null && !selectedFilePath.isEmpty()) {
-            labelFile.setText(new File(selectedFilePath).getName());
-        } else {
-            labelFile.setText("nessun file");
-        }
-    }
-
-    /** Inizializza il menu dei generi. */
+    /** Inizializza il menu dei generi con un valore predefinito. */
     @FXML
     public void initialize() {
         comboGenre.setItems(FXCollections.observableArrayList(
                 "Rock", "Pop", "Jazz", "Soul", "Hip-Hop",
                 "Classica", "Elettronica", "R&B", "Altro"
         ));
+        comboGenre.getSelectionModel().select("Pop");
     }
 
     @FXML
@@ -100,7 +80,7 @@ public class EditTrackController {
         String lengthText = fieldLength.getText().trim();
         String genre      = comboGenre.getValue();
 
-        // Controlli "campo mancante" in ordine, prima di parsare i numeri
+        // Controlli "campo mancante" NELL'ORDINE voluto, prima di parsare i numeri
         if (title.isEmpty())      { labelError.setText("Il titolo non può essere vuoto."); return; }
         if (author.isEmpty())     { labelError.setText("L'autore non può essere vuoto."); return; }
         if (yearText.isEmpty())   { labelError.setText("L'anno non può essere vuoto."); return; }
@@ -119,9 +99,9 @@ public class EditTrackController {
             labelError.setText("La durata deve essere un numero intero."); return;
         }
 
-        // Validazione di dominio + aggiornamento (incluso il file audio)
+        // Validazione di dominio (range anno, durata > 0, lunghezza titolo) + creazione
         try {
-            facade.updateTrack(track.getId(), title, author, year, length, genre, selectedFilePath);
+            facade.createTrack(title, author, year, length, genre, selectedFilePath);
             if (mainController != null) mainController.refreshTable();
             closeDialog();
         } catch (IllegalArgumentException e) {

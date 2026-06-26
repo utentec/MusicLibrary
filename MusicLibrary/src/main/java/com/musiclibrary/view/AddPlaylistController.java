@@ -16,7 +16,6 @@ public class AddPlaylistController {
     @FXML private Label     labelError;
 
     private MusicLibraryFacade facade;
-    private MainViewController mainController;
 
     /**
      * Inietta la Facade del dominio.
@@ -26,21 +25,12 @@ public class AddPlaylistController {
         this.facade = facade;
     }
 
-    /**
-     * Imposta (facoltativamente) il controller principale da notificare dopo la creazione.
-     * @param mainController il controller della finestra principale
-     */
-    public void setMainController(MainViewController mainController) {
-        this.mainController = mainController;
-    }
-
     @FXML
     private void onSave() {
         labelError.setText("");
         String name = fieldName.getText().trim();
         try {
             facade.createPlaylist(name);
-            if (mainController != null) mainController.refreshPlaylists();
             closeDialog();
         } catch (IllegalArgumentException e) {
             labelError.setText(e.getMessage());

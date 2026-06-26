@@ -26,7 +26,9 @@ class MusicLibraryFacadeTest {
         facade = new MusicLibraryFacade(trackRepo, playlistRepo);
     }
 
-    // ── US-H1.1 — Creazione brano (partizionamento in classi di equivalenza) ──
+    /**
+     * Creazione brano
+     */
 
     // Creazione valida
     @Test
@@ -71,7 +73,9 @@ class MusicLibraryFacadeTest {
     }
 
 
-    // ── Anno: intervallo valido [1900, 2026] ──────────────────────────────
+    /**
+     * Anno: intervallo valido [1900, 2026]
+     */
 
     @Test
     void createTrack_yearJustBelowMin_throwsException() {   // 1899 → non valido
@@ -101,8 +105,10 @@ class MusicLibraryFacadeTest {
         );
     }
 
-    // ── Durata: valida se > 0 (confine 0 / 1) ─────────────────────────────
-    //  (il caso durata = 0 è già coperto da createTrack_zeroDuration_...)
+    /**
+     * Durata: valida se > 0 (confine 0 / 1)
+     * (il caso durata = 0 è già coperto da createTrack_zeroDuration_...)
+     */
 
     @Test
     void createTrack_durationOne_isValid() {                // 1 → valido (appena sopra 0)
@@ -118,7 +124,9 @@ class MusicLibraryFacadeTest {
         );
     }
 
-    // ── Lunghezza titolo: massimo 200 caratteri (confine 200 / 201) ────────
+    /**
+     * Lunghezza titolo: massimo 200 caratteri (confine 200 / 201)
+     */
 
     @Test
     void createTrack_titleAtMaxLength_isValid() {           // 200 char → valido (confine)
@@ -136,7 +144,9 @@ class MusicLibraryFacadeTest {
         );
     }
 
-    // ── US-H1.4 — Visualizzazione lista brani ─────────────────────────────
+    /**
+     * Visualizzazione lista brani
+     */
 
     @Test
     void getAllTracks_afterAddingTracks_returnsAll() {
@@ -151,7 +161,9 @@ class MusicLibraryFacadeTest {
         assertTrue(facade.getAllTracks().isEmpty());
     }
 
-    // ── US-H1.5 — Creazione playlist ──────────────────────────────────────
+    /**
+     * Creazione playlist
+     */
 
     @Test
     void createPlaylist_validName_playlistIsSaved() {
@@ -174,10 +186,12 @@ class MusicLibraryFacadeTest {
         );
     }
 
-    // ── US-H1.2 — Modifica brano ──────────────────────────────────────────
+    /**
+     * Modifica brano
+     */
 
     @Test
-    void updateTrack_validData_trackIsUpdated() { // Cambio titolo
+    void updateTrack_validData_trackIsUpdated() {
         Track t = facade.createTrack("Titolo Vecchio", "Artista", 2000, 200, "Pop");
         facade.updateTrack(t.getId(), "Titolo Nuovo", "Artista", 2000, 200, "Pop");
 
@@ -186,7 +200,7 @@ class MusicLibraryFacadeTest {
     }
 
     @Test
-    void updateTrack_invalidYear_throwsException() { // Cambio con data non valida
+    void updateTrack_invalidYear_throwsException() {
         Track t = facade.createTrack("Titolo", "Artista", 2000, 200, "Pop");
         assertThrows(IllegalArgumentException.class, () ->
                 facade.updateTrack(t.getId(), "Titolo", "Artista", 1800, 200, "Pop")
@@ -194,7 +208,7 @@ class MusicLibraryFacadeTest {
     }
 
     @Test
-    void updateTrack_zeroDuration_throwsException() { // Cambio con durata non valida
+    void updateTrack_zeroDuration_throwsException() {
         Track t = facade.createTrack("Titolo", "Artista", 2000, 200, "Pop");
         assertThrows(IllegalArgumentException.class, () ->
                 facade.updateTrack(t.getId(), "Titolo", "Artista", 2000, 0, "Pop")
@@ -208,7 +222,9 @@ class MusicLibraryFacadeTest {
         );
     }
 
-    // ── US-H1.3 — Eliminazione brano ──────────────────────────────────────
+    /**
+     * Eliminazione brano
+     */
 
     @Test
     void deleteTrack_existing_isRemovedFromLibrary() {
@@ -237,7 +253,9 @@ class MusicLibraryFacadeTest {
         assertTrue(p.getTracks().isEmpty());
     }
 
-    // ── US-H1.6 — Aggiunta brani a una playlist ───────────────────────────
+    /**
+     * Aggiunta brani a una playlist
+     */
 
     @Test
     void addTrackToPlaylist_trackAppearsInPlaylist() {
@@ -290,5 +308,48 @@ class MusicLibraryFacadeTest {
 
         facade.undo();
         assertTrue(p.getTracks().isEmpty());
+    }
+
+    /**
+     * filePath
+     */
+
+    @Test
+    void createTrack_storesFilePath() {
+        Track t = facade.createTrack("Song", "Artist", 2020, 200, "Pop", "/music/song.mp3");
+        assertEquals("/music/song.mp3", t.getFilePath());
+    }
+
+    @Test
+    void createTrack_withoutFilePath_isEmpty() {
+        Track t = facade.createTrack("Song", "Artist", 2020, 200, "Pop");
+        assertEquals("", t.getFilePath());
+    }
+
+    @Test
+    void updateTrack_changesFilePath() {
+        Track t = facade.createTrack("Song", "Artist", 2020, 200, "Pop", "/old.mp3");
+        facade.updateTrack(t.getId(), "Song", "Artist", 2020, 200, "Pop", "/new.mp3");
+        assertEquals("/new.mp3", facade.getAllTracks().get(0).getFilePath());
+    }
+
+    @Test
+    void updateTrack_withoutFilePathArg_keepsExistingFilePath() {
+        Track t = facade.createTrack("Song", "Artist", 2020, 200, "Pop", "/keep.mp3");
+        facade.updateTrack(t.getId(), "Song (remastered)", "Artist", 2020, 200, "Pop");
+        assertEquals("/keep.mp3", facade.getAllTracks().get(0).getFilePath());
+    }
+
+    @Test
+    void deleteTrack_removesAllOccurrencesFromPlaylist() {
+        Track t = facade.createTrack("Song", "Artist", 2020, 200, "Pop");
+        Playlist p = facade.createPlaylist("Mix");
+        facade.addTrackToPlaylist(p, t);
+        facade.addTrackToPlaylist(p, t);   // stesso brano due volte
+        assertEquals(2, p.getTracks().size());
+
+        facade.deleteTrack(t.getId());
+
+        assertTrue(p.getTracks().isEmpty());   // entrambe le occorrenze rimosse
     }
 }

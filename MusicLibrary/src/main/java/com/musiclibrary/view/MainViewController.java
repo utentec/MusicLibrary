@@ -2,12 +2,16 @@ package com.musiclibrary.view;
 
 import com.musiclibrary.controller.MusicLibraryFacade;
 import com.musiclibrary.model.Track;
+import com.musiclibrary.player.PlaybackState;
+import com.musiclibrary.player.PlaybackStatus;
+import com.musiclibrary.player.PlayerService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -19,8 +23,9 @@ import javafx.stage.Stage;
 
 /**
  * Controller della finestra principale. Gestisce la barra di navigazione, lo
- * swap in-window tra il pannello Song List e il pannello Playlists, e la tabella
- * dei brani con le azioni di riga (modifica, aggiunta a playlist, eliminazione).
+ * swap in-window tra i pannelli Song List, Playlists e Player, la tabella dei
+ * brani con le azioni di riga (play, modifica, aggiunta a playlist, eliminazione)
+ * e la schermata di riproduzione.
  */
 public class MainViewController {
 
@@ -35,12 +40,19 @@ public class MainViewController {
     // ── Navigazione in-window ─────────────────────────────────────────────
     @FXML private Button btnSongList;
     @FXML private Button btnPlaylists;
+    @FXML private Button btnPlayer;
     @FXML private Button btnAddTrack;
     @FXML private VBox   songListPane;
     @FXML private javafx.scene.Node   playlistsPane;          // root incluso da PlaylistsView.fxml
     @FXML private PlaylistsController playlistsPaneController; // controller incluso (fx:include)
 
+    // ── Pannello Player ───────────────────────────────────────────────────
+    @FXML private VBox  playerPane;
+    @FXML private Label labelNowPlaying;
+    @FXML private Label labelPlaybackStatus;
+
     private MusicLibraryFacade facade;
+    private PlayerService playerService;
 
     /**
      * Inietta la Facade, configura colonne e celle, e mostra la vista iniziale.
@@ -49,7 +61,7 @@ public class MainViewController {
     public void setFacade(MusicLibraryFacade facade) {
         this.facade = facade;
 
-        // Configura le colonne UNA SOLA VOLTA
+        // Configura le colonne
         colTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
         colAuthor.setCellValueFactory(new PropertyValueFactory<>("author"));
         colGenre.setCellValueFactory(new PropertyValueFactory<>("genre"));
@@ -58,15 +70,21 @@ public class MainViewController {
 
         // Colonna Actions
         colActions.setCellFactory(col -> new TableCell<>() {
+            private final Button btnPlay      = new Button("▶");
             private final Button btnEdit      = new Button("✎");
             private final Button btnAddToPlay = new Button("+");
             private final Button btnDelete    = new Button("✕");
-            private final HBox   box = new HBox(4, btnEdit, btnAddToPlay, btnDelete);
+            private final HBox   box = new HBox(4, btnPlay, btnEdit, btnAddToPlay, btnDelete);
             {
+                btnPlay.setStyle("-fx-background-color: transparent; -fx-text-fill: #2C8A3A; -fx-font-size: 14px;");
                 btnEdit.setStyle("-fx-background-color: transparent; -fx-font-size: 14px;");
                 btnAddToPlay.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-font-weight: bold;");
                 btnDelete.setStyle("-fx-background-color: transparent; -fx-text-fill: #cc0000; -fx-font-size: 14px;");
 
+                btnPlay.setOnAction(e -> {
+                    Track t = getTableRow().getItem();
+                    if (t != null) onPlayTrack(t);
+                });
                 btnEdit.setOnAction(e -> {
                     Track t = getTableRow().getItem();
                     if (t != null) onEditTrack(t);
@@ -94,6 +112,16 @@ public class MainViewController {
         showSongList();
     }
 
+    /**
+     * Inietta il servizio di riproduzione e registra l'aggiornamento della
+     * schermata Player a ogni cambio di stato della riproduzione.
+     * @param playerService il servizio di riproduzione
+     */
+    public void setPlayerService(PlayerService playerService) {
+        this.playerService = playerService;
+        this.playerService.setOnPlaybackChanged(this::refreshPlayer);
+    }
+
     /** Ricarica la tabella dei brani dalla Facade. */
     public void refreshTable() {
         trackTable.setItems(
@@ -101,21 +129,16 @@ public class MainViewController {
         trackTable.refresh(); // forza JavaFX a ridisegnare tutte le celle
     }
 
-    /** Mantenuto per compatibilità con AddPlaylistController; non più usato dal flusso principale. */
-    public void refreshPlaylists() {
-        System.out.println("Playlists aggiornate: "
-                + facade.getAllPlaylists().size());
-    }
-
     // ── Navigazione in-window ─────────────────────────────────────────────
     @FXML private void onNavSongList()  { showSongList(); }
     @FXML private void onNavPlaylists() { showPlaylists(); }
-    @FXML private void onNavPlayer()    { System.out.println("→ Player"); }   // stub: sprint futuri
-    @FXML private void onNavHome()      { System.out.println("→ Home"); }     // stub: sprint futuri
+    @FXML private void onNavPlayer()    { showPlayer(); }
+    @FXML private void onNavHome()      { System.out.println("→ Home"); } // stub: sprint futuri
 
     private void showSongList() {
         songListPane.setVisible(true);   songListPane.setManaged(true);
         playlistsPane.setVisible(false); playlistsPane.setManaged(false);
+        playerPane.setVisible(false);    playerPane.setManaged(false);
         btnAddTrack.setVisible(true);    btnAddTrack.setManaged(true);
         setActiveTab(btnSongList);
         refreshTable();
@@ -124,17 +147,58 @@ public class MainViewController {
     private void showPlaylists() {
         songListPane.setVisible(false);  songListPane.setManaged(false);
         playlistsPane.setVisible(true);  playlistsPane.setManaged(true);
+        playerPane.setVisible(false);    playerPane.setManaged(false);
         btnAddTrack.setVisible(false);   btnAddTrack.setManaged(false);
         setActiveTab(btnPlaylists);
         playlistsPaneController.loadPlaylists();
     }
 
+    private void showPlayer() {
+        songListPane.setVisible(false);  songListPane.setManaged(false);
+        playlistsPane.setVisible(false); playlistsPane.setManaged(false);
+        playerPane.setVisible(true);     playerPane.setManaged(true);
+        btnAddTrack.setVisible(false);   btnAddTrack.setManaged(false);
+        setActiveTab(btnPlayer);
+        refreshPlayer();
+    }
+
     private void setActiveTab(Button active) {
         btnSongList.setStyle(active == btnSongList ? "-fx-background-color: #d0d0d0;" : "");
         btnPlaylists.setStyle(active == btnPlaylists ? "-fx-background-color: #d0d0d0;" : "");
+        btnPlayer.setStyle(active == btnPlayer ? "-fx-background-color: #d0d0d0;" : "");
     }
 
-    // ── Add / Edit / Delete (US-H1.1, H1.2, H1.3) ───────────────────────
+    // ── Riproduzione ────────────────────────────────────────────
+    private void onPlayTrack(Track track) {
+        if (track.getFilePath() == null || track.getFilePath().isEmpty()) {
+            new Alert(Alert.AlertType.INFORMATION,
+                    "Questo brano non ha un file audio associato. "
+                            + "Modificalo per aggiungerne uno.",
+                    ButtonType.OK).showAndWait();
+            return;
+        }
+        playerService.play(track);
+        showPlayer();
+    }
+
+    @FXML
+    private void onStopPlayback() {
+        playerService.stop();
+    }
+
+    private void refreshPlayer() {
+        PlaybackState state = playerService.getPlaybackState();
+        Track current = state.getCurrentTrack();
+        if (current != null && state.getStatus() == PlaybackStatus.PLAYING) {
+            labelNowPlaying.setText("♪  " + current.getTitle() + " — " + current.getAuthor());
+            labelPlaybackStatus.setText("In riproduzione");
+        } else {
+            labelNowPlaying.setText("Nessun brano in riproduzione");
+            labelPlaybackStatus.setText("Fermo");
+        }
+    }
+
+    // ── Add / Edit / Delete Track ───────────────────────
     @FXML
     private void onAddTrack() {
         try {

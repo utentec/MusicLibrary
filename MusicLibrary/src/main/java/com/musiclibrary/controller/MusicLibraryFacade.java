@@ -35,7 +35,7 @@ public class MusicLibraryFacade {
     // ── Metodi pubblici ───────────────────────────────────
 
     /**
-     * Crea un nuovo brano con validazione dei campi.
+     * Crea un nuovo brano senza file audio associato.
      * @param title  titolo del brano
      * @param author autore/artista
      * @param year   anno di pubblicazione
@@ -46,14 +46,31 @@ public class MusicLibraryFacade {
      */
     public Track createTrack(String title, String author,
                              int year, int length, String genre) {
+        return createTrack(title, author, year, length, genre, "");
+    }
+
+    /**
+     * Crea un nuovo brano con validazione dei campi e percorso del file audio.
+     * @param title    titolo del brano
+     * @param author   autore/artista
+     * @param year     anno di pubblicazione
+     * @param length   durata in secondi
+     * @param genre    genere musicale
+     * @param filePath percorso del file audio (stringa vuota se assente)
+     * @return il brano creato
+     * @throws IllegalArgumentException se i dati non sono validi
+     */
+    public Track createTrack(String title, String author,
+                             int year, int length, String genre, String filePath) {
         validateTrackData(title, author, year, length);
         Track track = new Track(title, author, year, length, genre);
+        track.setFilePath(filePath == null ? "" : filePath);
         trackRepository.addTrack(track);
         return track;
     }
 
     /**
-     * Modifica i dati di un brano esistente.
+     * Modifica i metadati di un brano esistente mantenendone invariato il file audio.
      * @param id     identificativo del brano
      * @param title  nuovo titolo
      * @param author nuovo autore/artista
@@ -65,6 +82,26 @@ public class MusicLibraryFacade {
      */
     public void updateTrack(String id, String title, String author,
                             int year, int length, String genre) {
+        String currentFilePath = trackRepository.findById(id)
+                .map(Track::getFilePath)
+                .orElseThrow(() -> new IllegalStateException("Brano non trovato: " + id));
+        updateTrack(id, title, author, year, length, genre, currentFilePath);
+    }
+
+    /**
+     * Modifica i dati di un brano esistente, incluso il percorso del file audio.
+     * @param id       identificativo del brano
+     * @param title    nuovo titolo
+     * @param author   nuovo autore/artista
+     * @param year     nuovo anno
+     * @param length   nuova durata
+     * @param genre    nuovo genere
+     * @param filePath nuovo percorso del file audio (stringa vuota se assente)
+     * @throws IllegalArgumentException se i dati non sono validi
+     * @throws IllegalStateException    se il brano non esiste
+     */
+    public void updateTrack(String id, String title, String author,
+                            int year, int length, String genre, String filePath) {
         validateTrackData(title, author, year, length);
         Track track = trackRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Brano non trovato: " + id));
@@ -73,6 +110,7 @@ public class MusicLibraryFacade {
         track.setYear(year);
         track.setLength(length);
         track.setGenre(genre);
+        track.setFilePath(filePath == null ? "" : filePath);
         trackRepository.updateTrack(track);
     }
 
@@ -86,7 +124,7 @@ public class MusicLibraryFacade {
                 .orElseThrow(() -> new IllegalStateException("Brano non trovato: " + id));
         for (Playlist playlist : playlistRepository.findAll()) {
             if (playlist.getTracks().contains(track)) {
-                playlist.removeTrack(track);
+                playlist.removeAllOccurrences(track);
                 playlistRepository.update(playlist); // persiste la playlist modificata
             }
         }

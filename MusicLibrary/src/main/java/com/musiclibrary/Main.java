@@ -1,6 +1,8 @@
 package com.musiclibrary;
 
 import com.musiclibrary.controller.MusicLibraryFacade;
+import com.musiclibrary.player.JavaFxAudioPlayer;
+import com.musiclibrary.player.PlayerService;
 import com.musiclibrary.repository.JsonPlaylistRepository;
 import com.musiclibrary.repository.JsonTrackRepository;
 import com.musiclibrary.repository.PlaylistRepository;
@@ -15,7 +17,8 @@ import java.nio.file.Path;
 
 /**
  * Punto di ingresso dell'applicazione JavaFX: costruisce la Facade con i
- * repository su file (persistenza JSON), carica la finestra principale e la mostra.
+ * repository su file (persistenza JSON) e il servizio di riproduzione, carica
+ * la finestra principale e la mostra.
  */
 public class Main extends Application {
 
@@ -33,11 +36,15 @@ public class Main extends Application {
         MusicLibraryFacade facade =
                 new MusicLibraryFacade(trackRepository, playlistRepository);
 
+        // Servizio di riproduzione: usa il player audio reale basato su JavaFX
+        PlayerService playerService = new PlayerService(new JavaFxAudioPlayer());
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/MainView.fxml"));
         Scene scene = new Scene(loader.load(), 1000, 650);
 
         MainViewController controller = loader.getController();
         controller.setFacade(facade);
+        controller.setPlayerService(playerService);
 
         stage.setTitle("Music Library");
         stage.setScene(scene);

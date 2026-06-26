@@ -14,8 +14,7 @@ import javafx.stage.Stage;
 /**
  * Controller della schermata "Playlists" (master-detail), inclusa in MainView
  * tramite fx:include. A sinistra l'elenco delle playlist, a destra i brani di
- * quella selezionata. Copre gli AC di US-H1.5 (la nuova playlist appare nella
- * lista) e US-H1.6 (i brani aggiunti appaiono nella playlist scelta).
+ * quella selezionata.
  */
 public class PlaylistsController {
 
