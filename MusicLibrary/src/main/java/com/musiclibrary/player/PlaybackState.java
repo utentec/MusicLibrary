@@ -40,6 +40,36 @@ public class PlaybackState {
     }
 
     /**
+     * Avvia la riproduzione di una playlist a partire dal suo primo brano.
+     * La playlist deve contenere almeno un brano.
+     * @param playlist la playlist da riprodurre
+     */
+    public void startPlaylist(Playlist playlist) {
+        this.currentPlaylist = playlist;
+        this.currentIndex = 0;
+        this.currentTrack = playlist.getTracks().get(0);
+        this.status = PlaybackStatus.PLAYING;
+    }
+
+    /**
+     * Avanza al brano successivo della playlist corrente, se esiste.
+     * @return {@code true} se è avanzato a un nuovo brano, {@code false} se non
+     *         c'erano altri brani o non si sta riproducendo una playlist
+     */
+    public boolean advanceToNext() {
+        if (currentPlaylist == null) {
+            return false;
+        }
+        int nextIndex = currentIndex + 1;
+        if (nextIndex < currentPlaylist.getTracks().size()) {
+            this.currentIndex = nextIndex;
+            this.currentTrack = currentPlaylist.getTracks().get(nextIndex);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Ferma la riproduzione e riporta lo stato a quello iniziale.
      */
     public void stop() {

@@ -1,5 +1,6 @@
 package com.musiclibrary.player;
 
+import com.musiclibrary.model.Playlist;
 import com.musiclibrary.model.Track;
 import org.junit.jupiter.api.Test;
 
@@ -9,16 +10,15 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * Test della logica di PlayerService, isolando l'audio reale con un doppio di
- * test ({@link FakeAudioPlayer}). Verifica avvio, stop, brano senza file e
- * fine naturale del brano, senza riprodurre alcun suono.
+ * test ({@link FakeAudioPlayer}). Copre brano singolo e riproduzione playlist (avvio, avanzamento
+ * automatico, fine, playlist vuota), senza riprodurre suono.
  */
 class PlayerServiceTest {
 
-    /** Doppio di test: registra le chiamate e permette di simulare la fine del brano. */
+    /** Registra le chiamate e permette di simulare la fine del brano. */
     private static final class FakeAudioPlayer implements AudioPlayer {
         private String lastPlayedPath;
         private int playCount;
-        private int stopCount;
         private Runnable onEnd;
 
         @Override
@@ -29,7 +29,7 @@ class PlayerServiceTest {
 
         @Override
         public void stop() {
-            stopCount++;
+            //Richiesto dall'interfaccia AudioPlayer
         }
 
         @Override
@@ -47,6 +47,22 @@ class PlayerServiceTest {
         t.setFilePath("/music/one.mp3");
         return t;
     }
+
+    private static Playlist playlistWith(String... filePaths) {
+        Playlist p = new Playlist("Mix");
+        int i = 1;
+        for (String path : filePaths) {
+            Track t = new Track("Track " + i, "Artist", 2020, 200, "Pop");
+            t.setFilePath(path);
+            p.addTrack(t);
+            i++;
+        }
+        return p;
+    }
+
+    /**
+     * Brano singolo
+      */
 
     @Test
     void play_startsPlaybackAndDelegatesToAudioPlayer() {
@@ -76,26 +92,71 @@ class PlayerServiceTest {
     }
 
     @Test
-    void stop_stopsPlaybackAndDelegates() {
-        FakeAudioPlayer audio = new FakeAudioPlayer();
-        PlayerService service = new PlayerService(audio);
-        service.play(trackWithFile());
-
-        service.stop();
-
-        assertEquals(PlaybackStatus.STOPPED, service.getPlaybackState().getStatus());
-        assertEquals(1, audio.stopCount);
-    }
-
-    @Test
     void endOfMedia_returnsToStoppedState() {
         FakeAudioPlayer audio = new FakeAudioPlayer();
         PlayerService service = new PlayerService(audio);
         service.play(trackWithFile());
 
-        audio.simulateEndOfMedia(); // il brano finisce da solo (Scenario 2)
+        audio.simulateEndOfMedia(); // il brano finisce da solo
 
         assertEquals(PlaybackStatus.STOPPED, service.getPlaybackState().getStatus());
         assertNull(service.getPlaybackState().getCurrentTrack());
     }
+
+    /**
+     * Riproduzione di playlist
+     */
+
+    @Test
+    void playPlaylist_startsAtFirstTrack() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist p = playlistWith("/a.mp3", "/b.mp3");
+
+        service.playPlaylist(p);
+
+        assertEquals(PlaybackStatus.PLAYING, service.getPlaybackState().getStatus());
+        assertEquals(0, service.getPlaybackState().getCurrentIndex());
+        assertEquals("/a.mp3", audio.lastPlayedPath);
+    }
+
+    @Test
+    void endOfMedia_inPlaylist_advancesToNextTrack() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist p = playlistWith("/a.mp3", "/b.mp3");
+        service.playPlaylist(p);
+
+        audio.simulateEndOfMedia(); // finisce il primo brano
+
+        assertEquals(PlaybackStatus.PLAYING, service.getPlaybackState().getStatus());
+        assertEquals(1, service.getPlaybackState().getCurrentIndex());
+        assertEquals("/b.mp3", audio.lastPlayedPath); // sta suonando il secondo
+    }
+
+    @Test
+    void endOfMedia_atLastTrackOfPlaylist_stops() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist p = playlistWith("/only.mp3");
+        service.playPlaylist(p);
+
+        audio.simulateEndOfMedia(); // finisce l'ultimo brano
+
+        assertEquals(PlaybackStatus.STOPPED, service.getPlaybackState().getStatus());
+    }
+
+    @Test
+    void playPlaylist_emptyPlaylist_doesNotStart() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist empty = new Playlist("Vuota");
+
+        service.playPlaylist(empty); // Playlist vuota
+
+        assertEquals(PlaybackStatus.STOPPED, service.getPlaybackState().getStatus());
+        assertEquals(0, audio.playCount);
+    }
 }
+
+

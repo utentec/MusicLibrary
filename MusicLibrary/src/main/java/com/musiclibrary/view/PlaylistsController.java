@@ -11,6 +11,8 @@ import javafx.scene.control.ListView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.util.function.Consumer;
+
 /**
  * Controller della schermata "Playlists" (master-detail), inclusa in MainView
  * tramite fx:include. A sinistra l'elenco delle playlist, a destra i brani di
@@ -23,6 +25,7 @@ public class PlaylistsController {
     @FXML private Label              detailHeader;
 
     private MusicLibraryFacade facade;
+    private Consumer<Playlist> onPlayPlaylist;
 
     /**
      * Inietta la Facade del dominio.
@@ -30,6 +33,15 @@ public class PlaylistsController {
      */
     public void setFacade(MusicLibraryFacade facade) {
         this.facade = facade;
+    }
+
+    /**
+     * Registra l'azione da eseguire quando l'utente chiede di riprodurre la
+     * playlist selezionata (pulsante Riproduci).
+     * @param onPlayPlaylist azione che riceve la playlist da riprodurre
+     */
+    public void setOnPlayPlaylist(Consumer<Playlist> onPlayPlaylist) {
+        this.onPlayPlaylist = onPlayPlaylist;
     }
 
     /** Imposta i placeholder e registra l'ascoltatore di selezione delle playlist. */
@@ -77,6 +89,14 @@ public class PlaylistsController {
     }
 
     @FXML
+    private void onPlaySelectedPlaylist() {
+        Playlist selected = playlistListView.getSelectionModel().getSelectedItem();
+        if (selected != null && onPlayPlaylist != null) {
+            onPlayPlaylist.accept(selected);
+        }
+    }
+
+    @FXML
     private void onAddPlaylist() {
         try {
             FXMLLoader loader = new FXMLLoader(
@@ -92,7 +112,7 @@ public class PlaylistsController {
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.showAndWait();
 
-            loadPlaylists(); // US-H1.5 Scenario 1: la nuova playlist appare subito
+            loadPlaylists(); // la nuova playlist appare subito
         } catch (Exception e) {
             e.printStackTrace();
         }

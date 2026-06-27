@@ -1,6 +1,7 @@
 package com.musiclibrary.view;
 
 import com.musiclibrary.controller.MusicLibraryFacade;
+import com.musiclibrary.model.Playlist;
 import com.musiclibrary.model.Track;
 import com.musiclibrary.player.PlaybackState;
 import com.musiclibrary.player.PlaybackStatus;
@@ -120,6 +121,7 @@ public class MainViewController {
     public void setPlayerService(PlayerService playerService) {
         this.playerService = playerService;
         this.playerService.setOnPlaybackChanged(this::refreshPlayer);
+        playlistsPaneController.setOnPlayPlaylist(this::onPlayPlaylistRequested);
     }
 
     /** Ricarica la tabella dei brani dalla Facade. */
@@ -168,7 +170,10 @@ public class MainViewController {
         btnPlayer.setStyle(active == btnPlayer ? "-fx-background-color: #d0d0d0;" : "");
     }
 
-    // ── Riproduzione ────────────────────────────────────────────
+    /**
+     * RIPRODUZIONE
+     */
+
     private void onPlayTrack(Track track) {
         if (track.getFilePath() == null || track.getFilePath().isEmpty()) {
             new Alert(Alert.AlertType.INFORMATION,
@@ -181,9 +186,15 @@ public class MainViewController {
         showPlayer();
     }
 
-    @FXML
-    private void onStopPlayback() {
-        playerService.stop();
+    private void onPlayPlaylistRequested(Playlist playlist) {
+        if (playlist.getTracks().isEmpty()) {
+            new Alert(Alert.AlertType.INFORMATION,
+                    "La playlist è vuota. Aggiungi dei brani per iniziare.",
+                    ButtonType.OK).showAndWait();
+            return;
+        }
+        playerService.playPlaylist(playlist);
+        showPlayer();
     }
 
     private void refreshPlayer() {
@@ -198,7 +209,9 @@ public class MainViewController {
         }
     }
 
-    // ── Add / Edit / Delete Track ───────────────────────
+    /**
+     * ADD / EDIT / DELETE
+     */
     @FXML
     private void onAddTrack() {
         try {

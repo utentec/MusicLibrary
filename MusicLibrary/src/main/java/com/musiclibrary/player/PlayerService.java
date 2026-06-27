@@ -1,5 +1,6 @@
 package com.musiclibrary.player;
 
+import com.musiclibrary.model.Playlist;
 import com.musiclibrary.model.Track;
 
 /**
@@ -40,11 +41,16 @@ public class PlayerService {
     }
 
     /**
-     * Ferma la riproduzione corrente e riporta lo stato a quello iniziale.
+     * Avvia la riproduzione di un'intera playlist dal primo brano. Se la playlist
+     * è vuota non avvia nulla e lo stato resta invariato.
+     * @param playlist la playlist da riprodurre
      */
-    public void stop() {
-        state.stop();
-        audioPlayer.stop();
+    public void playPlaylist(Playlist playlist) {
+        if (playlist.getTracks().isEmpty()) {
+            return;
+        }
+        state.startPlaylist(playlist);
+        audioPlayer.play(state.getCurrentTrack().getFilePath());
         onPlaybackChanged.run();
     }
 
@@ -58,7 +64,13 @@ public class PlayerService {
     }
 
     private void onTrackEnded() {
-        state.stop();
+        // In una playlist, a fine brano si passa al successivo; se non ce ne sono
+        // (o è un brano singolo) la riproduzione si ferma.
+        if (state.getCurrentPlaylist() != null && state.advanceToNext()) {
+            audioPlayer.play(state.getCurrentTrack().getFilePath());
+        } else {
+            state.stop();
+        }
         onPlaybackChanged.run();
     }
 

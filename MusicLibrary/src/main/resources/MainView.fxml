@@ -72,10 +72,6 @@
                    style="-fx-font-size: 15px;"/>
             <Label fx:id="labelPlaybackStatus" text="Fermo"
                    style="-fx-font-size: 12px; -fx-text-fill: #666666;"/>
-            <Button text="⏹ Stop" prefWidth="130" prefHeight="36"
-                    onAction="#onStopPlayback"
-                    style="-fx-background-color: #2C5F8A; -fx-text-fill: white;
-                           -fx-font-weight: bold; -fx-background-radius: 4;"/>
         </VBox>
 
     </StackPane>

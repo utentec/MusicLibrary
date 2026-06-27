@@ -36,8 +36,14 @@
                     <ListView fx:id="playlistListView" VBox.vgrow="ALWAYS"/>
                 </VBox>
                 <VBox spacing="6" style="-fx-padding: 8;">
-                    <Label fx:id="detailHeader" text="Nessuna playlist selezionata"
-                           style="-fx-font-weight: bold;"/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label fx:id="detailHeader" text="Nessuna playlist selezionata"
+                               style="-fx-font-weight: bold;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="▶ Riproduci" onAction="#onPlaySelectedPlaylist"
+                                style="-fx-background-color: #2C8A3A; -fx-text-fill: white;
+                                       -fx-font-weight: bold; -fx-background-radius: 4;"/>
+                    </HBox>
                     <ListView fx:id="trackListView" VBox.vgrow="ALWAYS"/>
                 </VBox>
             </items>
