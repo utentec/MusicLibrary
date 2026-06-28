@@ -70,6 +70,30 @@ public class PlaybackState {
     }
 
     /**
+     * Ri-sincronizza lo stato dopo che un brano è stato rimosso dalla playlist
+     * in riproduzione. Se il brano corrente è ancora presente ne aggiorna solo
+     * l'indice (la rimozione di un brano precedente lo fa scalare); se il brano
+     * corrente era proprio quello rimosso, fa diventare corrente il successivo
+     * (che scivola nella stessa posizione) oppure ferma la riproduzione se la
+     * playlist non ha più brani da quella posizione in poi.
+     */
+    public void handleTrackRemoved() {
+        if (currentPlaylist == null) {
+            return;
+        }
+        int newIndex = currentPlaylist.getTracks().indexOf(currentTrack);
+        if (newIndex >= 0) {
+            this.currentIndex = newIndex; // il brano corrente è ancora in lista
+            return;
+        }
+        if (currentIndex < currentPlaylist.getTracks().size()) {
+            this.currentTrack = currentPlaylist.getTracks().get(currentIndex); // il successivo scala qui
+        } else {
+            stop(); // è stato rimosso l'ultimo brano in riproduzione
+        }
+    }
+
+    /**
      * Ferma la riproduzione e riporta lo stato a quello iniziale.
      */
     public void stop() {

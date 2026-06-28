@@ -45,6 +45,8 @@
                                        -fx-font-weight: bold; -fx-background-radius: 4;"/>
                     </HBox>
                     <ListView fx:id="trackListView" VBox.vgrow="ALWAYS"/>
+                    <Button text="✕ Rimuovi brano dalla playlist" onAction="#onRemoveSelectedTrack"
+                            style="-fx-text-fill: #cc0000; -fx-font-weight: bold;"/>
                 </VBox>
             </items>
         </SplitPane>

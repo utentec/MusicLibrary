@@ -11,6 +11,7 @@ import javafx.scene.control.ListView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -26,6 +27,7 @@ public class PlaylistsController {
 
     private MusicLibraryFacade facade;
     private Consumer<Playlist> onPlayPlaylist;
+    private BiConsumer<Playlist, Track> onRemoveTrackFromPlaylist;
 
     /**
      * Inietta la Facade del dominio.
@@ -42,6 +44,17 @@ public class PlaylistsController {
      */
     public void setOnPlayPlaylist(Consumer<Playlist> onPlayPlaylist) {
         this.onPlayPlaylist = onPlayPlaylist;
+    }
+
+    /**
+     * Registra l'azione da eseguire quando l'utente rimuove dalla playlist il
+     * brano selezionato (pulsante Rimuovi). L'azione riceve la playlist e il
+     * brano da togliere: spetta a chi la registra rimuovere il brano e adattare
+     * l'eventuale riproduzione in corso.
+     * @param onRemoveTrackFromPlaylist azione che riceve la playlist e il brano da rimuovere
+     */
+    public void setOnRemoveTrackFromPlaylist(BiConsumer<Playlist, Track> onRemoveTrackFromPlaylist) {
+        this.onRemoveTrackFromPlaylist = onRemoveTrackFromPlaylist;
     }
 
     /** Imposta i placeholder e registra l'ascoltatore di selezione delle playlist. */
@@ -93,6 +106,18 @@ public class PlaylistsController {
         Playlist selected = playlistListView.getSelectionModel().getSelectedItem();
         if (selected != null && onPlayPlaylist != null) {
             onPlayPlaylist.accept(selected);
+        }
+    }
+
+
+    @FXML
+    private void onRemoveSelectedTrack() {
+        Playlist playlist = playlistListView.getSelectionModel().getSelectedItem();
+        Track track = trackListView.getSelectionModel().getSelectedItem();
+        if (playlist != null && track != null && onRemoveTrackFromPlaylist != null) {
+            onRemoveTrackFromPlaylist.accept(playlist, track); // rimuove e adatta la riproduzione
+            showTracksOf(playlist); // la playlist è già aggiornata: rinfresca i brani mostrati
+            playlistListView.refresh(); // ridisegna le righe a sinistra: aggiorna il conteggio "(N brani)"
         }
     }
 

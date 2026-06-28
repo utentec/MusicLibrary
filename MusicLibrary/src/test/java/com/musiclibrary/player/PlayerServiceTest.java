@@ -20,6 +20,7 @@ class PlayerServiceTest {
         private String lastPlayedPath;
         private int playCount;
         private Runnable onEnd;
+        private int stopCount;
 
         @Override
         public void play(String filePath) {
@@ -29,7 +30,7 @@ class PlayerServiceTest {
 
         @Override
         public void stop() {
-            //Richiesto dall'interfaccia AudioPlayer
+            stopCount++;
         }
 
         @Override
@@ -157,6 +158,73 @@ class PlayerServiceTest {
         assertEquals(PlaybackStatus.STOPPED, service.getPlaybackState().getStatus());
         assertEquals(0, audio.playCount);
     }
+
+    /**
+     * Rimozione di un brano durante la riproduzione
+     */
+    @Test
+    void handleTrackRemoved_otherTrack_keepsPlayingCurrent() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist p = playlistWith("/a.mp3", "/b.mp3", "/c.mp3");
+        service.playPlaylist(p); // suona /a.mp3 (indice 0)
+        Track other = p.getTracks().get(2); // un brano diverso da quello corrente
+
+        p.removeTrack(other);          // la rimozione avviene prima (come fa la Facade)
+        service.handleTrackRemoved(p);
+
+        assertEquals(PlaybackStatus.PLAYING, service.getPlaybackState().getStatus());
+        assertEquals(0, service.getPlaybackState().getCurrentIndex());
+        assertEquals(1, audio.playCount); // nessun nuovo avvio: continua lo stesso brano
+    }
+
+    @Test
+    void handleTrackRemoved_currentTrackNotLast_playsNext() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist p = playlistWith("/a.mp3", "/b.mp3");
+        service.playPlaylist(p); // suona /a.mp3 (indice 0, corrente)
+        Track current = p.getTracks().get(0);
+
+        p.removeTrack(current);
+        service.handleTrackRemoved(p);
+
+        assertEquals(PlaybackStatus.PLAYING, service.getPlaybackState().getStatus());
+        assertEquals("/b.mp3", audio.lastPlayedPath); // è partito il successivo
+        assertEquals(2, audio.playCount);
+    }
+
+    @Test
+    void handleTrackRemoved_currentTrackWasLast_stops() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist p = playlistWith("/only.mp3");
+        service.playPlaylist(p); // suona l'unico brano (corrente e ultimo)
+        Track current = p.getTracks().get(0);
+
+        p.removeTrack(current);
+        service.handleTrackRemoved(p);
+
+        assertEquals(PlaybackStatus.STOPPED, service.getPlaybackState().getStatus());
+        assertNull(service.getPlaybackState().getCurrentTrack());
+        assertEquals(1, audio.stopCount); // l'audio è stato fermato
+    }
+
+    @Test
+    void handleTrackRemoved_fromNonPlayingPlaylist_hasNoEffect() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist playing = playlistWith("/a.mp3", "/b.mp3");
+        service.playPlaylist(playing);
+        Playlist other = playlistWith("/x.mp3"); // playlist diversa, non in riproduzione
+
+        service.handleTrackRemoved(other);
+
+        assertEquals(PlaybackStatus.PLAYING, service.getPlaybackState().getStatus());
+        assertEquals(0, service.getPlaybackState().getCurrentIndex());
+        assertEquals(1, audio.playCount); // nulla è cambiato
+    }
+
 }
 
 

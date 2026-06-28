@@ -311,6 +311,37 @@ class MusicLibraryFacadeTest {
     }
 
     /**
+     * Rimozione di un brano da una playlist
+     */
+
+    // Il brano sparisce dalla playlist ma resta in libreria
+    @Test
+    void removeTrackFromPlaylist_removesFromPlaylistButKeepsInLibrary() {
+        Track t = facade.createTrack("Bohemian Rhapsody", "Queen", 1975, 355, "Rock");
+        Playlist p = facade.createPlaylist("Preferiti");
+        facade.addTrackToPlaylist(p, t);
+
+        facade.removeTrackFromPlaylist(p, t);
+
+        assertTrue(p.getTracks().isEmpty());      // non è più nella playlist
+        assertTrue(facade.getAllTracks().contains(t)); // ma resta disponibile in libreria
+    }
+
+    @Test
+    void removeTrackFromPlaylist_keepsTrackInOtherPlaylists() {
+        Track t = facade.createTrack("Levitating", "Dua Lipa", 2020, 203, "Pop");
+        Playlist pop = facade.createPlaylist("Pop");
+        Playlist preferiti = facade.createPlaylist("Preferiti");
+        facade.addTrackToPlaylist(pop, t);
+        facade.addTrackToPlaylist(preferiti, t);
+
+        facade.removeTrackFromPlaylist(pop, t);
+
+        assertTrue(pop.getTracks().isEmpty());          // rimosso solo da questa
+        assertTrue(preferiti.getTracks().contains(t));  // resta nelle altre
+    }
+
+    /**
      * filePath
      */
 

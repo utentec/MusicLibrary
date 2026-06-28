@@ -55,6 +55,29 @@ public class PlayerService {
     }
 
     /**
+     * Adatta la riproduzione dopo che un brano è stato rimosso da una playlist.
+     * Se la playlist non è quella in riproduzione non fa nulla. Altrimenti
+     * aggiorna lo stato: se il brano rimosso era quello in riproduzione avvia il
+     * successivo, o ferma l'audio se la playlist è terminata; se invece era un
+     * altro brano la riproduzione prosegue senza interruzioni.
+     * @param playlist la playlist da cui è stato rimosso un brano
+     */
+    public void handleTrackRemoved(Playlist playlist) {
+        if (state.getCurrentPlaylist() != playlist) {
+            return; // non è la playlist in riproduzione: niente da adattare
+        }
+        Track before = state.getCurrentTrack();
+        state.handleTrackRemoved();
+        Track after = state.getCurrentTrack();
+        if (after == null) {
+            audioPlayer.stop(); // è stato rimosso l'ultimo brano in riproduzione
+        } else if (after != before) {
+            audioPlayer.play(after.getFilePath()); // rimosso il brano corrente: parte il successivo
+        }
+        onPlaybackChanged.run();
+    }
+
+    /**
      * Registra un'azione eseguita a ogni cambio di stato della riproduzione
      * (avvio, stop, fine del brano): usata dalla UI per aggiornarsi.
      * @param callback l'azione di aggiornamento; {@code null} per nessuna azione

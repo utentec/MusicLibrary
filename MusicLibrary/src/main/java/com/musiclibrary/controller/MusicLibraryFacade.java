@@ -16,12 +16,11 @@ import java.util.List;
  */
 public class MusicLibraryFacade {
 
-    // ── Attributi ─────────────────────────────────────────
     private final TrackRepository trackRepository;
     private final PlaylistRepository playlistRepository;
     private final UndoManager undoManager = new UndoManager();
 
-    // ── Costruttore ───────────────────────────────────────
+
     /**
      * @param trackRepository    repository dei brani
      * @param playlistRepository repository delle playlist
@@ -32,7 +31,6 @@ public class MusicLibraryFacade {
         this.playlistRepository = playlistRepository;
     }
 
-    // ── Metodi pubblici ───────────────────────────────────
 
     /**
      * Crea un nuovo brano senza file audio associato.
@@ -161,7 +159,18 @@ public class MusicLibraryFacade {
         playlistRepository.update(playlist); // persiste l'aggiunta (no-op in memoria)
     }
 
-    /** Annulla l'ultima operazione annullabile (es. un'aggiunta a playlist). */
+    /**
+     * Rimuove un brano da una playlist. Il brano viene tolto solo dalla raccolta:
+     * resta disponibile nella libreria e nelle altre playlist che lo contengono.
+     * @param playlist la playlist da cui rimuovere il brano
+     * @param track il brano da rimuovere dalla playlist
+     */
+    public void removeTrackFromPlaylist(Playlist playlist, Track track) {
+        playlist.removeTrack(track);
+        playlistRepository.update(playlist); // persiste la rimozione (no-op in memoria)
+    }
+
+    /** Annulla l'ultima operazione annullabile. */
     public void undo() {
         undoManager.undo();
     }
@@ -174,7 +183,7 @@ public class MusicLibraryFacade {
         return undoManager.canUndo();
     }
 
-    // ── Metodi privati ────────────────────────────────────
+
     /**
      * Valida i campi comuni di un brano (titolo, autore, anno, durata),
      * condivisi tra creazione e modifica.
@@ -201,7 +210,7 @@ public class MusicLibraryFacade {
         }
     }
 
-    // ── Getter ────────────────────────────────────────────
+
     /**
      * Restituisce tutti i brani della libreria.
      * @return la lista dei brani

@@ -122,6 +122,7 @@ public class MainViewController {
         this.playerService = playerService;
         this.playerService.setOnPlaybackChanged(this::refreshPlayer);
         playlistsPaneController.setOnPlayPlaylist(this::onPlayPlaylistRequested);
+        playlistsPaneController.setOnRemoveTrackFromPlaylist(this::onRemoveTrackFromPlaylistRequested);
     }
 
     /** Ricarica la tabella dei brani dalla Facade. */
@@ -170,9 +171,7 @@ public class MainViewController {
         btnPlayer.setStyle(active == btnPlayer ? "-fx-background-color: #d0d0d0;" : "");
     }
 
-    /**
-     * RIPRODUZIONE
-     */
+    // ── Riproduzione ───────────────────────────────────────────────────
 
     private void onPlayTrack(Track track) {
         if (track.getFilePath() == null || track.getFilePath().isEmpty()) {
@@ -195,6 +194,11 @@ public class MainViewController {
         }
         playerService.playPlaylist(playlist);
         showPlayer();
+    }
+
+    private void onRemoveTrackFromPlaylistRequested(Playlist playlist, Track track) {
+        facade.removeTrackFromPlaylist(playlist, track); // toglie dalla playlist, resta in libreria
+        playerService.handleTrackRemoved(playlist);      // adatta la riproduzione in corso
     }
 
     private void refreshPlayer() {
