@@ -20,6 +20,19 @@ public interface AudioPlayer {
     void stop();
 
     /**
+     * Mette in pausa la riproduzione in corso, mantenendo la posizione. Non ha
+     * effetto se non c'è nulla in riproduzione.
+     */
+    void pause();
+
+    /**
+     * Riprende la riproduzione dal punto in cui era stata messa in pausa. Non ha
+     * effetto se non c'è una riproduzione in pausa.
+     */
+    void resume();
+
+
+    /**
      * Registra l'azione da eseguire quando il brano termina naturalmente.
      * @param callback l'azione da eseguire alla fine del brano
      */

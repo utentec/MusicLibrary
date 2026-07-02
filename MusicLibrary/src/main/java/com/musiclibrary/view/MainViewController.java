@@ -48,9 +48,13 @@ public class MainViewController {
     @FXML private PlaylistsController playlistsPaneController; // controller incluso (fx:include)
 
     // ── Pannello Player ───────────────────────────────────────────────────
-    @FXML private VBox  playerPane;
-    @FXML private Label labelNowPlaying;
-    @FXML private Label labelPlaybackStatus;
+    @FXML private VBox   playerPane;
+    @FXML private Label  labelNowPlaying;
+    @FXML private Label  labelPlaybackStatus;
+    @FXML private HBox   playerControls;
+    @FXML private Button btnPrevious;
+    @FXML private Button btnPause;
+    @FXML private Button btnNext;
 
     private MusicLibraryFacade facade;
     private PlayerService playerService;
@@ -201,16 +205,49 @@ public class MainViewController {
         playerService.handleTrackRemoved(playlist);      // adatta la riproduzione in corso
     }
 
+
+    /**
+     * Mette in pausa o riprende la riproduzione corrente.
+     */
+    @FXML
+    private void onTogglePause() {
+        playerService.togglePause();
+    }
+
+    /**
+     * Torna al brano precedente della playlist in riproduzione
+     */
+    @FXML
+    private void onSkipPrevious() {
+        playerService.skipPrevious();
+    }
+
+    /**
+     * Passa al brano successivo della playlist in riproduzione
+     */
+    @FXML
+    private void onSkipNext() {
+        playerService.skipNext();
+    }
+
+
+
     private void refreshPlayer() {
         PlaybackState state = playerService.getPlaybackState();
         Track current = state.getCurrentTrack();
-        if (current != null && state.getStatus() == PlaybackStatus.PLAYING) {
+        PlaybackStatus status = state.getStatus();
+        boolean active = current != null && status != PlaybackStatus.STOPPED;
+        if (active) {
             labelNowPlaying.setText("♪  " + current.getTitle() + " — " + current.getAuthor());
-            labelPlaybackStatus.setText("In riproduzione");
+            labelPlaybackStatus.setText(
+                    status == PlaybackStatus.PAUSED ? "In pausa" : "In riproduzione");
+            btnPause.setText(status == PlaybackStatus.PAUSED ? "▶ Riprendi" : "⏸ Pausa");
         } else {
             labelNowPlaying.setText("Nessun brano in riproduzione");
             labelPlaybackStatus.setText("Fermo");
         }
+        playerControls.setVisible(active);
+        playerControls.setManaged(active);
     }
 
     /**

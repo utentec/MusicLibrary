@@ -72,6 +72,16 @@
                    style="-fx-font-size: 15px;"/>
             <Label fx:id="labelPlaybackStatus" text="Fermo"
                    style="-fx-font-size: 12px; -fx-text-fill: #666666;"/>
+
+            <!-- Barra dei controlli di riproduzione (US-H1.10; estesa da H1.11 e H2.1) -->
+            <HBox fx:id="playerControls" alignment="CENTER" spacing="10">
+                <Button fx:id="btnPrevious" text="⏮" prefWidth="60" prefHeight="30"
+                        onAction="#onSkipPrevious"/>
+                <Button fx:id="btnPause" text="⏸ Pausa" prefWidth="130" prefHeight="30"
+                        onAction="#onTogglePause"/>
+                <Button fx:id="btnNext" text="⏭" prefWidth="60" prefHeight="30"
+                        onAction="#onSkipNext"/>
+            </HBox>
         </VBox>
 
     </StackPane>

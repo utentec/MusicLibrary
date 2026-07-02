@@ -70,6 +70,24 @@ public class PlaybackState {
     }
 
     /**
+     * Torna al brano precedente della playlist corrente, se esiste.
+     * @return {@code true} se è tornato a un brano precedente, {@code false} se era
+     *         già il primo brano o non si sta riproducendo una playlist
+     */
+    public boolean advanceToPrevious() {
+        if (currentPlaylist == null) {
+            return false;
+        }
+        int prevIndex = currentIndex - 1;
+        if (prevIndex >= 0) {
+            this.currentIndex = prevIndex;
+            this.currentTrack = currentPlaylist.getTracks().get(prevIndex);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Ri-sincronizza lo stato dopo che un brano è stato rimosso dalla playlist
      * in riproduzione. Se il brano corrente è ancora presente ne aggiorna solo
      * l'indice (la rimozione di un brano precedente lo fa scalare); se il brano
@@ -101,6 +119,27 @@ public class PlaybackState {
         this.status = PlaybackStatus.STOPPED;
         this.currentPlaylist = null;
         this.currentIndex = NO_INDEX;
+    }
+
+    /**
+     * Mette in pausa la riproduzione: il brano corrente resta selezionato, cambia
+     * solo lo stato in {@link PlaybackStatus#PAUSED}. Non ha effetto se non c'è un
+     * brano in riproduzione.
+     */
+    public void pause() {
+        if (status == PlaybackStatus.PLAYING) {
+            this.status = PlaybackStatus.PAUSED;
+        }
+    }
+
+    /**
+     * Riprende la riproduzione dopo una pausa, riportando lo stato a
+     * {@link PlaybackStatus#PLAYING}. Non ha effetto se non si è in pausa.
+     */
+    public void resume() {
+        if (status == PlaybackStatus.PAUSED) {
+            this.status = PlaybackStatus.PLAYING;
+        }
     }
 
     // ── Getter ────────────────────────────────────────────

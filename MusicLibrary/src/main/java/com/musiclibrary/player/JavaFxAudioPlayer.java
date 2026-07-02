@@ -19,6 +19,9 @@ public class JavaFxAudioPlayer implements AudioPlayer {
     @Override
     public void play(String filePath) {
         stop(); // ferma e libera l'eventuale riproduzione precedente
+        if (filePath == null || filePath.isEmpty()) {
+            return; // brano senza file audio: non creare un Media non valido
+        }
         Media media = new Media(new File(filePath).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
         if (onEndOfMedia != null) {
@@ -33,6 +36,20 @@ public class JavaFxAudioPlayer implements AudioPlayer {
             mediaPlayer.stop();
             mediaPlayer.dispose();
             mediaPlayer = null;
+        }
+    }
+
+    @Override
+    public void pause() {
+        if (mediaPlayer != null) {
+            mediaPlayer.pause();
+        }
+    }
+
+    @Override
+    public void resume() {
+        if (mediaPlayer != null) {
+            mediaPlayer.play(); // MediaPlayer.play() riprende dalla posizione di pausa
         }
     }
 

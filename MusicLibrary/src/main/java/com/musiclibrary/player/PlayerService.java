@@ -50,7 +50,58 @@ public class PlayerService {
             return;
         }
         state.startPlaylist(playlist);
-        audioPlayer.play(state.getCurrentTrack().getFilePath());
+        playCurrentOrAdvanceToPlayable(); // salta eventuali brani senza file audio
+        onPlaybackChanged.run();
+    }
+
+    /**
+     * Alterna pausa e ripresa della riproduzione corrente: se un brano sta
+     * suonando lo mette in pausa, se è in pausa lo riprende dal punto in cui era.
+     * Non ha effetto se la riproduzione è ferma.
+     */
+    public void togglePause() {
+        PlaybackStatus status = state.getStatus();
+        if (status == PlaybackStatus.PLAYING) {
+            state.pause();
+            audioPlayer.pause();
+        } else if (status == PlaybackStatus.PAUSED) {
+            state.resume();
+            audioPlayer.resume();
+        } else {
+            return; // riproduzione ferma: niente da mettere in pausa o riprendere
+        }
+        onPlaybackChanged.run();
+    }
+
+    /**
+     * Passa al brano successivo della playlist in riproduzione e lo avvia. Se il
+     * brano corrente era l'ultimo, la riproduzione si ferma (modalità sequenziale).
+     * Non ha effetto quando si riproduce un brano singolo.
+     */
+    public void skipNext() {
+        if (state.getCurrentPlaylist() == null) {
+            return; // brano singolo: nessuna playlist su cui spostarsi
+        }
+        if (state.advanceToNext()) {
+            audioPlayer.play(state.getCurrentTrack().getFilePath()); // Scenario 1
+        } else {
+            state.stop();      // Scenario 2: era l'ultimo brano
+            audioPlayer.stop();
+        }
+        onPlaybackChanged.run();
+    }
+
+    /**
+     * Torna al brano precedente della playlist in riproduzione e lo avvia. Se il
+     * brano corrente era il primo, riavvia lo stesso brano dall'inizio. Non ha
+     * effetto quando si riproduce un brano singolo.
+     */
+    public void skipPrevious() {
+        if (state.getCurrentPlaylist() == null) {
+            return; // brano singolo
+        }
+        state.advanceToPrevious(); // va al precedente se c'è; se è il primo resta lì
+        audioPlayer.play(state.getCurrentTrack().getFilePath()); // Scenario 3 o Scenario 4 (riavvio)
         onPlaybackChanged.run();
     }
 
@@ -95,6 +146,32 @@ public class PlayerService {
             state.stop();
         }
         onPlaybackChanged.run();
+    }
+
+    /**
+     * Riproduce il brano corrente della playlist; se non ha un file audio associato
+     * prosegue in avanti fino al primo brano riproducibile, oppure ferma la
+     * riproduzione se non ne restano. Evita così di passare un percorso vuoto
+     * all'AudioPlayer (che altrimenti tenterebbe di creare un Media non valido).
+     */
+    private void playCurrentOrAdvanceToPlayable() {
+        while (!isPlayable(state.getCurrentTrack())) {
+            if (!state.advanceToNext()) {
+                state.stop();
+                audioPlayer.stop();
+                return;
+            }
+        }
+        audioPlayer.play(state.getCurrentTrack().getFilePath());
+    }
+
+    /**
+     * Indica se un brano è riproducibile, cioè ha un file audio associato.
+     * @param track il brano da controllare (può essere {@code null})
+     * @return {@code true} se il brano ha un percorso di file non vuoto
+     */
+    private boolean isPlayable(Track track) {
+        return track != null && track.getFilePath() != null && !track.getFilePath().isEmpty();
     }
 
     /** @return lo stato corrente della riproduzione (in sola lettura per la UI) */

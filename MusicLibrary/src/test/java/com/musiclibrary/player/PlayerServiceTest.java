@@ -19,8 +19,10 @@ class PlayerServiceTest {
     private static final class FakeAudioPlayer implements AudioPlayer {
         private String lastPlayedPath;
         private int playCount;
-        private Runnable onEnd;
         private int stopCount;
+        private int pauseCount;
+        private int resumeCount;
+        private Runnable onEnd;
 
         @Override
         public void play(String filePath) {
@@ -31,6 +33,16 @@ class PlayerServiceTest {
         @Override
         public void stop() {
             stopCount++;
+        }
+
+        @Override
+        public void pause() {
+            pauseCount++;
+        }
+
+        @Override
+        public void resume() {
+            resumeCount++;
         }
 
         @Override
@@ -105,6 +117,38 @@ class PlayerServiceTest {
     }
 
     /**
+     * Pausa/ripresa
+     */
+    @Test
+    void togglePause_pausesThenResumes() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        service.play(trackWithFile()); // in riproduzione
+
+        service.togglePause(); // prima pressione: pausa
+
+        assertEquals(PlaybackStatus.PAUSED, service.getPlaybackState().getStatus());
+        assertEquals(1, audio.pauseCount);
+
+        service.togglePause(); // seconda pressione: ripresa
+
+        assertEquals(PlaybackStatus.PLAYING, service.getPlaybackState().getStatus());
+        assertEquals(1, audio.resumeCount);
+    }
+
+    @Test
+    void togglePause_whenStopped_hasNoEffect() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+
+        service.togglePause(); // nessun brano in riproduzione
+
+        assertEquals(PlaybackStatus.STOPPED, service.getPlaybackState().getStatus());
+        assertEquals(0, audio.pauseCount);
+        assertEquals(0, audio.resumeCount);
+    }
+
+    /**
      * Riproduzione di playlist
      */
 
@@ -157,6 +201,99 @@ class PlayerServiceTest {
 
         assertEquals(PlaybackStatus.STOPPED, service.getPlaybackState().getStatus());
         assertEquals(0, audio.playCount);
+    }
+
+    /**
+     * Skip avanti/indietro
+     */
+    @Test
+    void skipNext_advancesToNextTrack() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist p = playlistWith("/a.mp3", "/b.mp3");
+        service.playPlaylist(p); // suona /a.mp3 (indice 0)
+
+        service.skipNext(); // skip al brano successivo disponibile
+
+        assertEquals(1, service.getPlaybackState().getCurrentIndex());
+        assertEquals("/b.mp3", audio.lastPlayedPath);
+    }
+
+    @Test
+    void skipNext_atLastTrack_stops() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist p = playlistWith("/only.mp3");
+        service.playPlaylist(p);
+
+        service.skipNext(); // skip sull'ultimo (modalità sequenziale)
+
+        assertEquals(PlaybackStatus.STOPPED, service.getPlaybackState().getStatus());
+        assertEquals(1, audio.stopCount);
+    }
+
+    @Test
+    void skipPrevious_goesToPreviousTrack() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist p = playlistWith("/a.mp3", "/b.mp3");
+        service.playPlaylist(p);
+        service.skipNext(); // ora su /b.mp3 (indice 1)
+
+        service.skipPrevious(); // skip previus
+
+        assertEquals(0, service.getPlaybackState().getCurrentIndex());
+        assertEquals("/a.mp3", audio.lastPlayedPath);
+    }
+
+    @Test
+    void skipPrevious_atFirstTrack_restartsSameTrack() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist p = playlistWith("/a.mp3", "/b.mp3");
+        service.playPlaylist(p); // su /a.mp3 (primo), playCount = 1
+
+        service.skipPrevious(); // skip previus su primo brano: riparte
+
+        assertEquals(0, service.getPlaybackState().getCurrentIndex());
+        assertEquals("/a.mp3", audio.lastPlayedPath);
+        assertEquals(2, audio.playCount); // /a.mp3 riavviato: play chiamato di nuovo
+    }
+
+    /**
+     * Robustezza: brani senza file audio nella playlis
+     */
+
+    @Test
+    void playPlaylist_skipsTracksWithoutFile() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist p = new Playlist("Mix");
+        Track noFile = new Track("NoFile", "A", 2020, 200, "Pop"); // filePath vuoto
+        Track withFile = new Track("WithFile", "A", 2020, 200, "Pop");
+        withFile.setFilePath("/b.mp3");
+        p.addTrack(noFile);
+        p.addTrack(withFile);
+
+        service.playPlaylist(p); // il primo brano non ha file: deve saltare al secondo
+
+        assertEquals(1, service.getPlaybackState().getCurrentIndex());
+        assertEquals("/b.mp3", audio.lastPlayedPath);
+        assertEquals(PlaybackStatus.PLAYING, service.getPlaybackState().getStatus());
+    }
+
+    @Test
+    void playPlaylist_allTracksWithoutFile_stops() {
+        FakeAudioPlayer audio = new FakeAudioPlayer();
+        PlayerService service = new PlayerService(audio);
+        Playlist p = new Playlist("Mix");
+        p.addTrack(new Track("A", "X", 2020, 200, "Pop")); // nessun file
+        p.addTrack(new Track("B", "X", 2020, 200, "Pop")); // nessun file
+
+        service.playPlaylist(p);
+
+        assertEquals(PlaybackStatus.STOPPED, service.getPlaybackState().getStatus());
+        assertEquals(0, audio.playCount); // nessuna riproduzione tentata
     }
 
     /**
